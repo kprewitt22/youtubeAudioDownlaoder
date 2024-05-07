@@ -45,7 +45,7 @@ def downloadAudio(url):
       video = YouTube(url,
         on_progress_callback=on_progress,
         use_oauth=oauthFlag,
-        allow_oauth_cache= cacheFlag
+        allow_oauth_cache=cacheFlag
       )
       #stream filter only the audio
       stream = video.streams.filter(only_audio=True).first()
@@ -61,14 +61,61 @@ def downloadVideo(url):
       video = YouTube(url,
          on_progress_callback=on_progress,
          use_oauth=oauthFlag,
-         allow_oauth_cache= cacheFlag
+         allow_oauth_cache=cacheFlag
       )
       #stream
       stream = video.streams.filter(file_extension='mp4').first()
       stream.download(filename=f"{video.title}.mp4")
       print("The video was downloaded in MP4 format") 
    except Exception as error:
-      print("\nUnable to download video please try again or a different URL: ", error)   
+      print("\nUnable to download video please try again or a different URL: ", error)
+
+def login(cacheFlag, oauthFlag):
+   try:
+      def sigHandler(sig, frame):
+         print("\nInterrupt received. Returning to main menu...")
+         raise KeyboardInterrupt
+
+      signal.signal(signal.SIGINT, sigHandler)
+      while True:        
+         print("1. Enable/Disable OAuth cache")
+         print("2. Enable/Disable OAuth")
+         print("3. Go back")
+         if(cacheFlag == False):
+            print("OAuth cache is currently disabled")
+         else:
+            print("OAuth cache is currently enabled")
+         if(oauthFlag == False):
+            print("OAuth is currently disabled")
+         else:
+            print("OAuth is currently enabled")
+         loginOptions = input("Please enter a menu option: ")
+         if(loginOptions == "1"):
+            if(cacheFlag == False):
+               cacheFlag = True
+               print("OAuth cache is now set to enabled")
+            else:
+               cacheFlag = False
+               print("OAuth cache is now set to disabled")
+         elif(loginOptions == "2"):
+            if(oauthFlag == False):
+               oauthFlag = True
+               print("OAuth is now set to enabled")
+            else:
+               oauthFlag = False
+               print("OAuth is now set to disabled")
+         elif(loginOptions == "3"):
+            break
+         else:
+            print("That is not a menu option please enter a valid input")        
+      return cacheFlag, oauthFlag  # Return the modified flags
+   except KeyboardInterrupt:
+      if keyboardInterrupt():
+         sys.exit(0)
+      return cacheFlag, oauthFlag  # Return the flags even if interrupted in case user selects no
+   except Exception as error:
+      print("Unable to authenticate: ", error)
+      
 signal.signal(signal.SIGINT, sigHandler)
 #Now run main script to download youtube video audio
 # Main loop
@@ -81,45 +128,13 @@ while True:
       print("4. Exit the program")
       option = input("Please enter a menu option: ")
       if(option == "1"):
-         while True:
-            print("1. Enable/Disable OAuth cache")
-            print("2. Enable/Disable OAuth")
-            print("3. Go back")
-            if(cacheFlag == False):
-               print("OAuth cache is currently disabled")
-            else:
-               print("OAuth cache is currently enabled")
-            if(oauthFlag == False):
-               print("OAuth is currently disabled")
-            else:
-               print("OAuth is currently enabled")
-            loginOptions = input("Please enter a menu option: ")
-            if(loginOptions == "1"):
-               if(cacheFlag == False):
-                  cacheFlag = True
-                  print("OAuth cache is now set to enabled")
-               else:
-                  cacheFlag = False
-                  print("OAuth cache is now set to disabled")
-            elif(loginOptions == "2"):
-               if(oauthFlag == False):
-                  oauthFlag = True
-                  print("OAuth is now set to enabled")
-               else:
-                  oauthFlag = False
-                  print("OAuth is now set to disabled")
-            elif(loginOptions == "3"):
-               break
-            else:
-               print("That is not a menu option please enter a valid input")
+         cacheFlag, oauthFlag = login(cacheFlag, oauthFlag)
       elif(option == "2"):
          url = getInput()
          downloadAudio(url)
-         print()
       elif(option == "3"):
          url = getInput()
          downloadVideo(url)
-         print()
       elif(option == "4"):
          if keyboardInterrupt():
             sys.exit(0)
